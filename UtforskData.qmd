@@ -1,0 +1,87 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(PxWebApiData)
+```
+
+
+
+```{r}
+# Sett opp URL til tabellen
+url <- "https://data.ssb.no/api/v0/en/table/10540"
+
+# Hent metadata og selve data
+metadata_10540 <- ApiData(url, returnMetaData = TRUE)
+
+# Sjekk strukturen på metadata/data
+str(metadata_10540)
+```
+
+
+```{r}
+#Get more info about table
+ApiData(
+"http://data.ssb.no/api/v0/en/table/10540",
+returnApiQuery = TRUE
+) 
+```
+
+```{r}
+unemp99to02 <- ApiData12(
+  urlToData = "https://data.ssb.no/api/v0/en/table/10540/",
+  # or
+  # urlToData = "10540"
+  # Select all municipalities in Vest-Agder and Rogaland
+  Region = list(c("10*","11*")),
+  # Select two age groups
+  Alder = c("15-74", "15-29"),
+  # select 1999M01:2002M12
+  Tid = c(paste(
+    rep(1999:2002, each = 12), 
+    "M",
+    sprintf("%02d", 1:12), 
+    sep = "")
+    )
+  ) |> 
+  # convert from dataframe to tibble
+  as_tibble()
+```
+
+```{r}
+# pick and order variables. 
+unemp99to02 <- unemp99to02 |> 
+  select(
+    knr = Region, 
+    kname = region,  
+    month, 
+    age, 
+    unemp = value
+    )
+```
+
+```{r}
+# Check that it looks OK
+head(unemp99to02, n = 5)
+```
+
+```{r}
+dim(unemp99to02)
+```
+
+```{r}
+# save it as csv
+write.table(unemp99to02,
+  file = "tmp.csv",
+  dec = ".",
+  sep = ","
+)
+```
+
+
+
